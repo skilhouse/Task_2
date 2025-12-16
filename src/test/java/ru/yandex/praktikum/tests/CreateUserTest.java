@@ -7,6 +7,7 @@ import org.junit.After;
 import org.junit.Test;
 import ru.yandex.praktikum.client.UserClient;
 import ru.yandex.praktikum.model.User;
+import com.github.javafaker.Faker;
 
 import static org.hamcrest.Matchers.*;
 
@@ -15,9 +16,7 @@ public class CreateUserTest {
     private final UserClient userClient = new UserClient();
     private String accessToken;
 
-    private String generateEmail() {
-        return "user" + System.currentTimeMillis() + "@test.ru";
-    }
+    private final Faker faker = new Faker();
 
     @After
     public void cleanUp() {
@@ -30,7 +29,11 @@ public class CreateUserTest {
     @DisplayName("Можно создать уникального пользователя")
     @Description("200 OK, success=true, возвращаются токены")
     public void createUniqueUserSuccess() {
-        User user = new User(generateEmail(), "password", "Name");
+        User user = new User(
+                faker.internet().emailAddress(),
+                faker.internet().password(8, 12, true, true, true),
+                faker.name().fullName()
+        );
 
         ValidatableResponse response = userClient.createUser(user);
         accessToken = response.extract().path("accessToken");
@@ -44,7 +47,11 @@ public class CreateUserTest {
     @Test
     @DisplayName("Нельзя создать уже зарегистрированного пользователя")
     public void createAlreadyExistUserReturns403() {
-        User user = new User(generateEmail(), "password", "Name");
+        User user = new User(
+                faker.internet().emailAddress(),
+                faker.internet().password(8, 12, true, true, true),
+                faker.name().fullName()
+        );
 
         accessToken = userClient.createUser(user)
                 .extract().path("accessToken");
@@ -60,7 +67,10 @@ public class CreateUserTest {
     @Test
     @DisplayName("Нельзя создать пользователя без обязательного поля")
     public void createUserWithoutRequiredFieldReturnsError() {
-        User user = new User("", "password", "Name");
+        User user = new User("",
+                faker.internet().password(8, 12, true, true, true),
+                faker.name().fullName()
+        );
 
         ValidatableResponse response = userClient.createUser(user);
 

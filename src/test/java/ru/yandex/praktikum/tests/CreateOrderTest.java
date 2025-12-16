@@ -10,6 +10,7 @@ import ru.yandex.praktikum.client.OrderClient;
 import ru.yandex.praktikum.client.UserClient;
 import ru.yandex.praktikum.model.Order;
 import ru.yandex.praktikum.model.User;
+import com.github.javafaker.Faker;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,16 +22,18 @@ public class CreateOrderTest extends BaseApiTest {
 
     private final UserClient userClient = new UserClient();
     private final OrderClient orderClient = new OrderClient();
+    private final Faker faker = new Faker();
 
     private String accessToken;
 
-    private String generateEmail() {
-        return "user" + System.currentTimeMillis() + "@test.ru";
-    }
-
     @Before
     public void createUser() {
-        User user = new User(generateEmail(), "password", "Name");
+        User user = new User(
+                faker.internet().emailAddress(),
+                faker.internet().password(8, 12, true, true, true),
+                faker.name().fullName()
+        );
+
         accessToken = userClient.createUser(user)
                 .extract().path("accessToken");
     }
